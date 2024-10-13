@@ -1,4 +1,5 @@
 import { FC, useState, createContext } from 'react';
+import { ToastContainer } from 'react-toast';
 type SidebarContext = {
   sidebarToggle: any;
   toggleSidebar: () => void;
@@ -10,7 +11,9 @@ export const SidebarContext = createContext<SidebarContext>(
   {} as SidebarContext
 );
 
-export const SidebarProvider: FC = ({ children }) => {
+export const SidebarProvider: React.FC<React.PropsWithChildren<{}>> = ({
+  children
+}) => {
   const [sidebarToggle, setSidebarToggle] = useState(false);
   const toggleSidebar = () => {
     setSidebarToggle(!sidebarToggle);
@@ -20,10 +23,12 @@ export const SidebarProvider: FC = ({ children }) => {
   };
 
   return (
-    <SidebarContext.Provider
-      value={{ sidebarToggle, toggleSidebar, closeSidebar }}
-    >
-      {children}
-    </SidebarContext.Provider>
+    <>
+      <SidebarContext.Provider
+        value={{ sidebarToggle, toggleSidebar, closeSidebar }}
+      >
+        {children}
+      </SidebarContext.Provider>
+    </>
   );
 };

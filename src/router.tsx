@@ -6,6 +6,7 @@ import SidebarLayout from 'src/layouts/SidebarLayout';
 import BaseLayout from 'src/layouts/BaseLayout';
 
 import SuspenseLoader from 'src/components/SuspenseLoader';
+import PrivateRoute from './layouts/PrivateRoute';
 
 const Loader = (Component) => (props) =>
   (
@@ -15,21 +16,22 @@ const Loader = (Component) => (props) =>
   );
 
 // Pages
-
+const Login = Loader(lazy(()=> import('src/content/auth/login')))
 const Overview = Loader(lazy(() => import('src/content/overview')));
 
 // Dashboards
 
-const Crypto = Loader(lazy(() => import('src/content/dashboards/Crypto')));
+const Category = Loader(lazy(() => import('src/content/dashboards/Category')));
+const SubCategory = Loader(
+  lazy(() => import('src/content/dashboards/SubCategory'))
+);
+const Audio = Loader(
+  lazy(() => import('src/content/dashboards/Audio'))
+);
+
 
 // Applications
 
-const Messenger = Loader(
-  lazy(() => import('src/content/applications/Messenger'))
-);
-const Transactions = Loader(
-  lazy(() => import('src/content/applications/Transactions'))
-);
 const UserProfile = Loader(
   lazy(() => import('src/content/applications/Users/profile'))
 );
@@ -83,12 +85,39 @@ const routes: RouteObject[] = [
     children: [
       {
         path: '/',
-        element: <Overview />
+        element: <Login />
       },
       {
-        path: 'overview',
+        path: 'login',
         element: <Navigate to="/" replace />
       },
+      {
+        path: 'dashboard',
+        element: <PrivateRoute />,
+        children: [
+          {
+            path: '',
+            element: <Overview />
+          },
+          {
+            path: 'overview',
+            element: <Overview />
+          },
+          {
+            path: 'category',
+            element: <Category />
+          },
+          {
+            path: 'subcategory',
+            element: <SubCategory />
+          },
+          {
+            path: 'audio',
+            element: <Audio />
+          }
+        ]
+      },
+
       {
         path: 'status',
         children: [
@@ -121,34 +150,12 @@ const routes: RouteObject[] = [
     ]
   },
   {
-    path: 'dashboards',
-    element: <SidebarLayout />,
-    children: [
-      {
-        path: '',
-        element: <Navigate to="crypto" replace />
-      },
-      {
-        path: 'crypto',
-        element: <Crypto />
-      },
-      {
-        path: 'messenger',
-        element: <Messenger />
-      }
-    ]
-  },
-  {
     path: 'management',
     element: <SidebarLayout />,
     children: [
       {
         path: '',
         element: <Navigate to="transactions" replace />
-      },
-      {
-        path: 'transactions',
-        element: <Transactions />
       },
       {
         path: 'profile',

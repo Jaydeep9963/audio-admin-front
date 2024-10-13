@@ -6,6 +6,7 @@ import LocalizationProvider from '@mui/lab/LocalizationProvider';
 
 import { CssBaseline } from '@mui/material';
 import ThemeProvider from './theme/ThemeProvider';
+import { ToastContainer } from 'react-toast';
 
 function App() {
   const content = useRoutes(router);
@@ -16,6 +17,7 @@ function App() {
         <CssBaseline />
         {content}
       </LocalizationProvider>
+      <ToastContainer position='top-center' delay={4000}/>
     </ThemeProvider>
   );
 }
