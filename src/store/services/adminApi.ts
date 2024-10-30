@@ -6,17 +6,17 @@ import { RootState } from '../store';
 
 const baseQuery = fetchBaseQuery({
   baseUrl: 'http://localhost:3000/v1/admin',
-  prepareHeaders: (headers, { getState }) => {
-    const token = (getState() as RootState).admin.token;
-    console.log("🚀 ~ token:", token)
-    if (token) {
-      headers.set('Authorization', `${token}`);
-      headers.set('Accept', 'application/json');
-      headers.set('Content-Type', 'application/json');
-      headers.set('ngrok-skip-browser-warning', 'true');
-    }
-    return headers;
-  }
+  // prepareHeaders: (headers, { getState }) => {
+  //   const token = (getState() as RootState).admin.token;
+  //   console.log("🚀 ~ token:", token)
+  //   if (token) {
+  //     headers.set('Authorization', `${token}`);
+  //     headers.set('Accept', 'application/json');
+  //     headers.set('Content-Type', 'application/json');
+  //     headers.set('ngrok-skip-browser-warning', 'true');
+  //   }
+  //   return headers;
+  // }
 });
 
 const baseQueryWithInterceptor = async (

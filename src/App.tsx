@@ -17,7 +17,7 @@ function App() {
         <CssBaseline />
         {content}
       </LocalizationProvider>
-      <ToastContainer position='top-center' delay={4000}/>
+      <ToastContainer position='bottom-right' delay={4000}/>
     </ThemeProvider>
   );
 }

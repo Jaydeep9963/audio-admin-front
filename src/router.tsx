@@ -7,6 +7,7 @@ import BaseLayout from 'src/layouts/BaseLayout';
 
 import SuspenseLoader from 'src/components/SuspenseLoader';
 import PrivateRoute from './layouts/PrivateRoute';
+import MultiAudioForm from './content/dashboards/Audio/MultiAudioForm';
 
 const Loader = (Component) => (props) =>
   (
@@ -28,6 +29,11 @@ const SubCategory = Loader(
 const Audio = Loader(
   lazy(() => import('src/content/dashboards/Audio'))
 );
+const AddAudio = Loader(
+  lazy(() => import('src/content/dashboards/Audio/MultiAudioForm'))
+);
+const PrivacyPolicy = Loader(lazy(()=> import ('src/content/dashboards/PrivacyPolicy')));
+const TermAndCondition = Loader(lazy(()=> import ('src/content/dashboards/Term&Condition')));
 
 
 // Applications
@@ -114,6 +120,18 @@ const routes: RouteObject[] = [
           {
             path: 'audio',
             element: <Audio />
+          },
+          {
+            path: 'addAudios',
+            element: <AddAudio />
+          },
+          {
+            path: 'privacy-policy',
+            element: <PrivacyPolicy />
+          },
+          {
+            path: 'term&condition',
+            element: <TermAndCondition />
           }
         ]
       },

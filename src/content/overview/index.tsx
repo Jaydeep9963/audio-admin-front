@@ -12,9 +12,13 @@ import {
   styled,
   alpha
 } from '@mui/material';
-import AddTwoToneIcon from '@mui/icons-material/AddTwoTone';
+import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router';
+import { toast } from 'react-toast';
+import { getApi } from 'src/helper';
 import { RootState } from 'src/store/store';
+import { TotalNumberResponse } from 'src/type';
 
 const AvatarWrapper = styled(Avatar)(
   ({ theme }) => `
@@ -44,18 +48,31 @@ const AvatarWrapper = styled(Avatar)(
 `
 );
 
-const AvatarAddWrapper = styled(Avatar)(
-  ({ theme }) => `
-        background: ${theme.colors.alpha.black[10]};
-        color: ${theme.colors.primary.main};
-        width: ${theme.spacing(8)};
-        height: ${theme.spacing(8)};
-`
-);
-
 function Overview() {
-  const {token} = useSelector((state: RootState) => state.admin);
-  console.log("🚀 ~ Overview ~ token:", token)
+  const { token } = useSelector((state: RootState) => state.admin);
+  const [total, setTotal] = useState<TotalNumberResponse | null>(null);
+  const navigate = useNavigate();
+
+  const getTotalNumber = async () => {
+    try {
+      const getTotal: TotalNumberResponse = await getApi('/overview', navigate);
+      if (getTotal) {
+       setTotal(getTotal);
+      }
+    } catch (error) {
+      if (error.message) {
+        toast.error(error.message);
+      } else {
+        toast.error('Something went wrong ! try again later.');
+      }
+    }
+  };
+
+  useEffect(() => {
+    getTotalNumber();
+  }, []);
+
+  console.log('🚀 ~ Overview ~ token:', token);
   return (
     <>
       <Box
@@ -65,16 +82,21 @@ function Overview() {
         sx={{
           pb: 3
         }}
-      >    
-      </Box>
-      <Grid container sx={{
-        marginX: "auto",
-      }} spacing={1}>
+      ></Box>
+      <Grid
+        container
+        sx={{
+          marginX: 'auto'
+        }}
+        spacing={1}
+      >
         <Grid xs={12} sm={6} md={3} item>
           <Card
             sx={{
-              px: 1
+              px: 1,
+              cursor: 'pointer'
             }}
+            onClick={() => navigate('/dashboard/category')}
           >
             <CardContent>
               <AvatarWrapper>
@@ -86,17 +108,21 @@ function Overview() {
               <Typography variant="h5" noWrap>
                 Category
               </Typography>
-              
+
               <Box
                 sx={{
                   pt: 3,
-                  mx: "auto"
+                  mx: 'auto'
                 }}
               >
-                <Typography alignSelf={"center"} variant="h3" gutterBottom noWrap>
-                  10
+                <Typography
+                  alignSelf={'center'}
+                  variant="h3"
+                  gutterBottom
+                  noWrap
+                >
+                  {total?.totalNumOfCategory ?? 0}
                 </Typography>
-            
               </Box>
             </CardContent>
           </Card>
@@ -104,8 +130,10 @@ function Overview() {
         <Grid xs={12} sm={6} md={3} item>
           <Card
             sx={{
-              px: 1
+              px: 1,
+              cursor: 'pointer'
             }}
+            onClick={() => navigate('/dashboard/subcategory')}
           >
             <CardContent>
               <AvatarWrapper>
@@ -123,9 +151,8 @@ function Overview() {
                 }}
               >
                 <Typography variant="h3" gutterBottom noWrap>
-                  15
+                  {total?.totalNumOfSubCategory ?? 0}
                 </Typography>
-               
               </Box>
             </CardContent>
           </Card>
@@ -133,8 +160,10 @@ function Overview() {
         <Grid xs={12} sm={6} md={3} item>
           <Card
             sx={{
-              px: 1
+              px: 1,
+              cursor: 'pointer'
             }}
+            onClick={() => navigate('/dashboard/audio')}
           >
             <CardContent>
               <AvatarWrapper>
@@ -152,9 +181,8 @@ function Overview() {
                 }}
               >
                 <Typography variant="h3" gutterBottom noWrap>
-                  25
+                  {total?.totalNumOfAudio ?? 0}
                 </Typography>
-                
               </Box>
             </CardContent>
           </Card>

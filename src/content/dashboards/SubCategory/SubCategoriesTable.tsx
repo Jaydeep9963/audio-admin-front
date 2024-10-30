@@ -22,7 +22,10 @@ import {
   MenuItem,
   Typography,
   useTheme,
-  CardHeader
+  CardHeader,
+  Autocomplete,
+  CircularProgress,
+  TextField
 } from '@mui/material';
 
 import Label from 'src/components/Label';
@@ -32,131 +35,134 @@ import DeleteTwoToneIcon from '@mui/icons-material/DeleteTwoTone';
 import { truncateUrl } from 'src/utility';
 import { SubCategory } from 'src/models/subcategory_type';
 import { categories_data, subcategories_data } from 'src/constant';
+import FormDialog from 'src/Dialog/FormDialog';
+import SubCategoryForm from './SubCategoryForm';
+import { RootState } from 'src/store/store';
+import { useDispatch, useSelector } from 'react-redux';
+import { deleteApi, putApi, urlToFile } from 'src/helper';
+import { deleteSubCategory, updateSubCategory } from 'src/store/slices/subCategorySlice';
+import { toast } from 'react-toast';
+import DeleteDialog from 'src/Dialog/DeleteDialog';
+import { useNavigate } from 'react-router';
 
 interface RecentOrdersTableProps {
-  subsubcategoriesData: SubCategory[];
+  subcategoriesData: SubCategory[];
+  pageChangeHandler: React.Dispatch<React.SetStateAction<number>>;
+  limitChangeHandler: React.Dispatch<React.SetStateAction<number>>;
+  page: number;
+  limit: number;
+  searchQueryHandler: React.Dispatch<React.SetStateAction<string>>;
+  searchQuery: string;
 }
 
 interface Filters {
   status?: CryptoOrderStatus;
 }
 
-const getStatusLabel = (cryptoOrderStatus: CryptoOrderStatus): JSX.Element => {
-  const map = {
-    failed: {
-      text: 'Failed',
-      color: 'error'
-    },
-    completed: {
-      text: 'Completed',
-      color: 'success'
-    },
-    pending: {
-      text: 'Pending',
-      color: 'warning'
-    }
-  };
-
-  const { text, color }: any = map[cryptoOrderStatus];
-
-  return <Label color={color}>{text}</Label>;
-};
-
-const applyPagination = (
-  subcategoriesData: SubCategory[],
-  page: number,
-  limit: number
-): SubCategory[] => {
-  return subcategoriesData.slice(page * limit, page * limit + limit);
-};
-
-const SubCategoriesTable: FC<RecentOrdersTableProps> = ({ subsubcategoriesData }) => {
+const SubCategoriesTable: FC<RecentOrdersTableProps> = ({
+  subcategoriesData,
+  pageChangeHandler,
+  limitChangeHandler,
+  page,
+  limit,
+  searchQueryHandler,
+  searchQuery
+}) => {
   const [selectedCryptoOrders, setSelectedCryptoOrders] = useState<string[]>(
     []
   );
   const selectedBulkActions = selectedCryptoOrders.length > 0;
-  const [page, setPage] = useState<number>(0);
-  const [limit, setLimit] = useState<number>(5);
   const [filters, setFilters] = useState<Filters>({
     status: null
   });
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+     const [deleteSubCatId, setDeleteSubCatId] = useState('');
 
-  const statusOptions = [
-    {
-      id: 'all',
-      name: 'All'
-    },
-    {
-      id: 'completed',
-      name: 'Completed'
-    },
-    {
-      id: 'pending',
-      name: 'Pending'
-    },
-    {
-      id: 'failed',
-      name: 'Failed'
-    }
-  ];
+  const [selectedSubCategory, setSelectedSubCategory] = useState<{
+    id: string;
+    subCategory_name: string;
+    image: File | null;
+    description: string;
+    category: { _id: string; category_name: string };
+  }>();
+  const { totalSubCategories } = useSelector(
+    (state: RootState) => state.subcategory
+  );
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const handleStatusChange = (e: ChangeEvent<HTMLInputElement>): void => {
-    let value = null;
-
-    if (e.target.value !== 'all') {
-      value = e.target.value;
-    }
-
-    setFilters((prevFilters) => ({
-      ...prevFilters,
-      status: value
-    }));
-  };
-
-  const handleSelectAllCryptoOrders = (
-    event: ChangeEvent<HTMLInputElement>
-  ): void => {
-    setSelectedCryptoOrders(
-      event.target.checked
-        ? subsubcategoriesData.map((cryptoOrder) => cryptoOrder.id)
-        : []
-    );
-  };
-
-  const handleSelectOneCryptoOrder = (
-    event: ChangeEvent<HTMLInputElement>,
-    cryptoOrderId: string
-  ): void => {
-    if (!selectedCryptoOrders.includes(cryptoOrderId)) {
-      setSelectedCryptoOrders((prevSelected) => [
-        ...prevSelected,
-        cryptoOrderId
-      ]);
-    } else {
-      setSelectedCryptoOrders((prevSelected) =>
-        prevSelected.filter((id) => id !== cryptoOrderId)
+  const updateSubCategoryHandler = async (body: FormData) => {
+    try {
+      const response: { success: boolean; data: SubCategory } = await putApi(
+        `/subcategories/${selectedSubCategory.id}`,
+        body,
+        navigate
       );
+      if (response) {
+        dispatch(updateSubCategory(response.data));
+        toast.success('SubCategory update successfully');
+        handleClose();
+      }
+    } catch (error) {
+      console.log('🚀 ~ updateCategoryHandler ~ error:', error);
     }
   };
+
+    const onDeleteDialogOpen = (categoryID: string) => {
+      setIsDeleteDialogOpen(true);
+      setDeleteSubCatId(categoryID);
+    };
+
+    const deleteHandler = async (subCategoryId: string) => {
+      try {
+        const deletedCat = await deleteApi(
+          `/subcategories/${subCategoryId}`,
+          navigate
+        );
+        if (deletedCat) {
+          dispatch(deleteSubCategory(subCategoryId));
+          toast.success('SubCategory deleted successfully');
+        }
+      } catch (error) {
+        toast.error(
+          error?.message || 'An error occurred while delete subCategory'
+        );
+      }
+    };
+
+    const onDeleteHandler = async () => {
+      await deleteHandler(deleteSubCatId);
+      setIsDeleteDialogOpen(false);
+    };
 
   const handlePageChange = (event: any, newPage: number): void => {
-    setPage(newPage);
+    pageChangeHandler(newPage);
   };
 
   const handleLimitChange = (event: ChangeEvent<HTMLInputElement>): void => {
-    setLimit(parseInt(event.target.value));
+    limitChangeHandler(parseInt(event.target.value));
   };
 
-  // const paginatedCryptoOrders = applyPagination(
-  //   filteredCryptoOrders,
-  //   page,
-  //   limit
-  // );
-  const selectedSomeCryptoOrders =
-    selectedCryptoOrders.length > 0 &&
-    selectedCryptoOrders.length < subsubcategoriesData.length;
-  const selectedAllCryptoOrders =
-    selectedCryptoOrders.length === subsubcategoriesData.length;
+  const handleOpen = async (subCategory: SubCategory) => {
+    setSelectedSubCategory({
+      id: subCategory._id,
+      subCategory_name: subCategory.subcategory_name,
+      image: await urlToFile(
+        subCategory.image.file,
+        subCategory.image.fileName,
+        subCategory.image.fileType
+      ),
+      category: subCategory.category,
+      description: subCategory.description
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleClose = () => {
+    setIsDialogOpen(false);
+  };
+
   const theme = useTheme();
 
   return (
@@ -169,25 +175,36 @@ const SubCategoriesTable: FC<RecentOrdersTableProps> = ({ subsubcategoriesData }
       {!selectedBulkActions && (
         <CardHeader
           action={
-            <Box width={150}>
+            <Box width={300}>
               <FormControl fullWidth variant="outlined">
-                <InputLabel>Categories</InputLabel>
-                <Select
-                  value={filters.status || 'all'}
-                  onChange={handleStatusChange}
-                  label="Categories"
-                  autoWidth
-                >
-                  {categories_data.map((statusOption) => (
-                    <MenuItem key={statusOption._id} value={statusOption._id}>
-                      {statusOption.category_name}
-                    </MenuItem>
-                  ))}
-                </Select>
+                <Autocomplete
+                  value={null} // No default value initially
+                  inputValue={searchQuery} // The current search query
+                  onInputChange={(event, newInputValue) => {
+                    console.log('🚀 ~ newInputValue:', newInputValue);
+                    return searchQueryHandler(newInputValue);
+                  }} // Update input value as user types
+                  options={[]} // Dynamic category options
+                  getOptionLabel={(option) => option.name || ''} // Display category name in the list
+                  isOptionEqualToValue={(option, value) =>
+                    option.id === value.id
+                  } // Match by id
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Search SubCategories"
+                      variant="outlined"
+                      InputProps={{
+                        ...params.InputProps,
+                        endAdornment: <>{params.InputProps.endAdornment}</>
+                      }}
+                    />
+                  )}
+                />
               </FormControl>
             </Box>
           }
-          title="Categories"
+          title="SubCategories"
         />
       )}
       <Divider />
@@ -197,21 +214,25 @@ const SubCategoriesTable: FC<RecentOrdersTableProps> = ({ subsubcategoriesData }
             <TableRow>
               <TableCell align="center">No</TableCell>
               <TableCell align="center">name</TableCell>
-              <TableCell align="center">Id</TableCell>
-              <TableCell align="center">Url</TableCell>
-              <TableCell align="right">Description</TableCell>
-              <TableCell align="right">Actions</TableCell>
+              <TableCell align="center">Image</TableCell>
+              <TableCell align="center">Category</TableCell>
+              <TableCell align="center">Description</TableCell>
+              <TableCell align="center">Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {subcategories_data.map((subcategory, index) => {
+            {subcategoriesData?.map((subcategory, index) => {
+              console.log(
+                '🚀 ~ {subcategoriesData?.map ~ subcategory:',
+                subcategory
+              );
               const isCryptoOrderSelected = selectedCryptoOrders.includes(
-                subcategory.id
+                subcategory._id
               );
               return (
                 <TableRow
                   hover
-                  key={subcategory.id}
+                  key={subcategory._id}
                   selected={isCryptoOrderSelected}
                 >
                   <TableCell align="center">{index + 1}</TableCell>
@@ -227,17 +248,13 @@ const SubCategoriesTable: FC<RecentOrdersTableProps> = ({ subsubcategoriesData }
                       {subcategory.subcategory_name}
                     </Typography>
                   </TableCell>
-                  <TableCell>
-                    <Typography
-                      align="center"
-                      variant="body1"
-                      fontWeight="bold"
-                      color="text.primary"
-                      gutterBottom
-                      noWrap
-                    >
-                      {subcategory.id}
-                    </Typography>
+
+                  <TableCell align="center">
+                    <img
+                      src={`${process.env.REACT_APP_BASE_URL}${subcategory.image.file}`}
+                      alt="Selected"
+                      style={{ width: '80px', height: '80px' }}
+                    />
                   </TableCell>
                   <TableCell>
                     <Typography
@@ -248,10 +265,10 @@ const SubCategoriesTable: FC<RecentOrdersTableProps> = ({ subsubcategoriesData }
                       gutterBottom
                       noWrap
                     >
-                      {truncateUrl(subcategory.image)}
+                      {subcategory?.category?.category_name}
                     </Typography>
                   </TableCell>
-                  <TableCell align="right">
+                  <TableCell align="center">
                     <Typography
                       variant="body1"
                       fontWeight="bold"
@@ -263,7 +280,7 @@ const SubCategoriesTable: FC<RecentOrdersTableProps> = ({ subsubcategoriesData }
                     </Typography>
                   </TableCell>
 
-                  <TableCell align="right">
+                  <TableCell align="center">
                     <Tooltip title="Edit Order" arrow>
                       <IconButton
                         sx={{
@@ -274,11 +291,12 @@ const SubCategoriesTable: FC<RecentOrdersTableProps> = ({ subsubcategoriesData }
                         }}
                         color="inherit"
                         size="small"
+                        onClick={() => handleOpen(subcategory)}
                       >
                         <EditTwoToneIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
-                    <Tooltip title="Delete Order" arrow>
+                    <Tooltip title="Delete Subcategory" arrow>
                       <IconButton
                         sx={{
                           '&:hover': { background: theme.colors.error.lighter },
@@ -286,6 +304,7 @@ const SubCategoriesTable: FC<RecentOrdersTableProps> = ({ subsubcategoriesData }
                         }}
                         color="inherit"
                         size="small"
+                        onClick={() => onDeleteDialogOpen(subcategory._id)}
                       >
                         <DeleteTwoToneIcon fontSize="small" />
                       </IconButton>
@@ -294,30 +313,53 @@ const SubCategoriesTable: FC<RecentOrdersTableProps> = ({ subsubcategoriesData }
                 </TableRow>
               );
             })}
+            {/* Dialog for editing */}
+            {isDialogOpen && (
+              <FormDialog open={isDialogOpen} handleClose={handleClose}>
+                <SubCategoryForm
+                  submitSubCategoryHandler={updateSubCategoryHandler}
+                  asUpdate={true}
+                  existData={{
+                    id: selectedSubCategory.id,
+                    subCategoryName: selectedSubCategory.subCategory_name,
+                    image: selectedSubCategory.image,
+                    description: selectedSubCategory.description,
+                    category: selectedSubCategory.category
+                  }}
+                />
+              </FormDialog>
+            )}
           </TableBody>
         </Table>
+        {isDeleteDialogOpen && (
+          <DeleteDialog
+            isOpen={isDeleteDialogOpen}
+            handleClose={() => setIsDeleteDialogOpen(false)}
+            onOk={onDeleteHandler}
+          />
+        )}
       </TableContainer>
-      {/* <Box p={2}>
+      <Box p={2}>
         <TablePagination
           component="div"
-          count={filteredCryptoOrders.length}
+          count={totalSubCategories}
           onPageChange={handlePageChange}
           onRowsPerPageChange={handleLimitChange}
           page={page}
           rowsPerPage={limit}
-          rowsPerPageOptions={[5, 10, 25, 30]}
+          rowsPerPageOptions={[5, 10, 15, 20]}
         />
-      </Box> */}
+      </Box>
     </Card>
   );
 };
 
 SubCategoriesTable.propTypes = {
-  subsubcategoriesData: PropTypes.array.isRequired
+  subcategoriesData: PropTypes.array.isRequired
 };
 
 SubCategoriesTable.defaultProps = {
-  subsubcategoriesData: []
+  subcategoriesData: []
 };
 
 export default SubCategoriesTable;

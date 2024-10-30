@@ -11,7 +11,7 @@ const initialState: CategoryState = {
 };
 
 const categorySlice = createSlice({
-  name: 'admin',
+  name: 'category',
   initialState,
   reducers: {
     setCategoryResponse: (state, action: PayloadAction<CategoryState>) => {
@@ -25,7 +25,14 @@ const categorySlice = createSlice({
         const newCategories = [...state.categories, action.payload];
         state.categories = [...newCategories]
      },
+     updateCategory: (state, action: PayloadAction<Category>) => {
+      const updatedCategory = action.payload;
+       const findIndex = state.categories.findIndex(
+         (category) => category._id == updatedCategory
+       ._id);
 
+       state.categories.splice(findIndex, 1, updatedCategory);
+     },
      deleteCategory:  (state, action: PayloadAction<string>) =>{
         const id = action.payload;
        const newCategories = state.categories.filter(
@@ -37,5 +44,5 @@ const categorySlice = createSlice({
   }
 });
 
-export const { setCategoryResponse, setCategory, deleteCategory } = categorySlice.actions;
+export const { setCategoryResponse, setCategory,updateCategory, deleteCategory } = categorySlice.actions;
 export default categorySlice.reducer;

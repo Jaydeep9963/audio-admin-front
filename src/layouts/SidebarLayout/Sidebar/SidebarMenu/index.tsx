@@ -14,22 +14,9 @@ import { SidebarContext } from 'src/contexts/SidebarContext';
 
 import DesignServicesTwoToneIcon from '@mui/icons-material/DesignServicesTwoTone';
 import CategoryTwoToneIcon from '@mui/icons-material/CategoryTwoTone';
-import MmsTwoToneIcon from '@mui/icons-material/MmsTwoTone';
-import TableChartTwoToneIcon from '@mui/icons-material/TableChartTwoTone';
+import HeadphonesTwoToneIcon from '@mui/icons-material/HeadphonesTwoTone';
+import AutoAwesomeMosaicTwoToneIcon from '@mui/icons-material/AutoAwesomeMosaicTwoTone';
 import AccountCircleTwoToneIcon from '@mui/icons-material/AccountCircleTwoTone';
-import BallotTwoToneIcon from '@mui/icons-material/BallotTwoTone';
-import BeachAccessTwoToneIcon from '@mui/icons-material/BeachAccessTwoTone';
-import EmojiEventsTwoToneIcon from '@mui/icons-material/EmojiEventsTwoTone';
-import FilterVintageTwoToneIcon from '@mui/icons-material/FilterVintageTwoTone';
-import HowToVoteTwoToneIcon from '@mui/icons-material/HowToVoteTwoTone';
-import LocalPharmacyTwoToneIcon from '@mui/icons-material/LocalPharmacyTwoTone';
-import RedeemTwoToneIcon from '@mui/icons-material/RedeemTwoTone';
-import SettingsTwoToneIcon from '@mui/icons-material/SettingsTwoTone';
-import TrafficTwoToneIcon from '@mui/icons-material/TrafficTwoTone';
-import CheckBoxTwoToneIcon from '@mui/icons-material/CheckBoxTwoTone';
-import ChromeReaderModeTwoToneIcon from '@mui/icons-material/ChromeReaderModeTwoTone';
-import WorkspacePremiumTwoToneIcon from '@mui/icons-material/WorkspacePremiumTwoTone';
-import CameraFrontTwoToneIcon from '@mui/icons-material/CameraFrontTwoTone';
 import DisplaySettingsTwoToneIcon from '@mui/icons-material/DisplaySettingsTwoTone';
 
 const MenuWrapper = styled(Box)(
@@ -224,7 +211,7 @@ function SidebarMenu() {
                   component={RouterLink}
                   onClick={closeSidebar}
                   to="/dashboard/subcategory"
-                  startIcon={<CategoryTwoToneIcon />}
+                  startIcon={<AutoAwesomeMosaicTwoToneIcon />}
                 >
                   SubCategory
                 </Button>
@@ -235,21 +222,19 @@ function SidebarMenu() {
                   component={RouterLink}
                   onClick={closeSidebar}
                   to="/dashboard/audio"
-                  startIcon={<CategoryTwoToneIcon />}
+                  startIcon={<HeadphonesTwoToneIcon />}
                 >
                   Audio
                 </Button>
               </ListItem>
-           
             </List>
           </SubMenuWrapper>
         </List>
-      
         <List
           component="div"
           subheader={
             <ListSubheader component="div" disableSticky>
-              Accounts
+              Other
             </ListSubheader>
           }
         >
@@ -260,10 +245,10 @@ function SidebarMenu() {
                   disableRipple
                   component={RouterLink}
                   onClick={closeSidebar}
-                  to="/management/profile/details"
+                  to="/dashboard/privacy-policy"
                   startIcon={<AccountCircleTwoToneIcon />}
                 >
-                  User Profile
+                  Privacy-Policy
                 </Button>
               </ListItem>
               <ListItem component="div">
@@ -271,10 +256,10 @@ function SidebarMenu() {
                   disableRipple
                   component={RouterLink}
                   onClick={closeSidebar}
-                  to="/management/profile/settings"
+                  to="/dashboard/term&condition"
                   startIcon={<DisplaySettingsTwoToneIcon />}
                 >
-                  Account Settings
+                  Term & condition
                 </Button>
               </ListItem>
             </List>

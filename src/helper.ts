@@ -1,18 +1,27 @@
 import axios, { AxiosRequestConfig } from 'axios';
-export const API_URL = "http://localhost:3000/v1/admin";
+import { toast } from 'react-toast';
+import { store } from './store/store';
+import { NavigateFunction } from 'react-router-dom';
 
-const handleAxiosError = (error: any) => {
+export const API_URL = 'http://localhost:3000/v1/admin';
+
+const handleAxiosError = (error: any, navigate: NavigateFunction) => {
   if (axios.isAxiosError(error)) {
+    if (error.response?.status === 403) {
+      // Navigate to the login page if 403 error occurs
+      navigate('/login');
+      return;
+    }
     // If the error is an Axios error, check if there's a response from the server
     if (error.response) {
       // The request was made and the server responded with a status code outside of the 2xx range
-      throw new Error(error.response.data || error.message);
+      toast.error(error.response.data.message || error.message);
     } else if (error.request) {
       // The request was made but no response was received
-      throw new Error('No response received from the server');
+      toast.error('No response received from the server');
     } else {
       // Something happened in setting up the request that triggered an error
-      throw new Error(error.message);
+      toast.error(error.message);
     }
   } else {
     // Handle non-Axios errors (unexpected)
@@ -22,51 +31,92 @@ const handleAxiosError = (error: any) => {
 
 export const getApi = async <T>(
   url: string,
-  config?: AxiosRequestConfig
+  navigationFunction: NavigateFunction,
+  config?: AxiosRequestConfig,
 ): Promise<T> => {
   try {
-    const response = await axios.get<T>(API_URL+url, config);
+    const token = store.getState().admin.token;
+    const response = await axios.get<T>(API_URL + url, {
+      ...config,
+      headers: {
+        ...config?.headers,
+        Authorization: `Bearer ${token}`
+      }
+    });
     return response.data;
   } catch (error) {
-    handleAxiosError(error);
+    console.log('🚀 ~ error:', error);
+    handleAxiosError(error, navigationFunction);
   }
 };
 
 export const postApi = async <T>(
   url: string,
   body: FormData,
+  navigationFunction: NavigateFunction,
   config?: AxiosRequestConfig
 ): Promise<T> => {
   try {
-    const response = await axios.post<T>(API_URL + url, body, config);
+    const token = store.getState().admin.token;
+    const response = await axios.post<T>(API_URL + url, body, {
+      ...config,
+      headers: {
+        ...config?.headers,
+        Authorization: `Bearer ${token}`
+      }
+    });
     return response.data;
   } catch (error) {
-    handleAxiosError(error);
+    handleAxiosError(error, navigationFunction);
   }
 };
 
 export const putApi = async <T>(
   url: string,
   body: FormData,
+  navigationFunction: NavigateFunction,
   config?: AxiosRequestConfig
 ): Promise<T> => {
   try {
-    const response = await axios.put<T>(API_URL + url, body, config);
+    const token = store.getState().admin.token;
+    const response = await axios.put<T>(API_URL + url, body, {
+      ...config,
+      headers: {
+        ...config?.headers,
+        Authorization: `Bearer ${token}`
+      }
+    });
     return response.data;
   } catch (error) {
-    handleAxiosError(error);
+    handleAxiosError(error, navigationFunction);
   }
 };
 
 // Helper function for DELETE request
 export const deleteApi = async <T>(
   url: string,
+  navigationFunction: NavigateFunction,
   config?: AxiosRequestConfig
 ): Promise<T> => {
   try {
-    const response = await axios.delete<T>(API_URL+url, config);
+    const token = store.getState().admin.token;
+    const response = await axios.delete<T>(API_URL + url, {
+      ...config,
+      headers: {
+        ...config?.headers,
+        Authorization: `Bearer ${token}`
+      }
+    });
     return response.data;
   } catch (error) {
-    handleAxiosError(error);
+    console.log('🚀 ~ error:', error);
+    handleAxiosError(error, navigationFunction);
   }
 };
+
+export async function urlToFile(url, filename, mimeType) {
+  const response = await fetch('http://localhost:3000/' + url);
+  const blob = await response.blob();
+  const file = new File([blob], filename, { type: mimeType });
+  return file;
+}

@@ -4,10 +4,12 @@ import PageTitleWrapper from 'src/components/PageTitleWrapper';
 import { Container, Grid } from '@mui/material';
 import Footer from 'src/components/Footer';
 import Categories from './Categories';
+import { ToastContainer } from 'react-toast';
 
 function DashboardCategory() {
   return (
     <>
+      <ToastContainer position="bottom-right" delay={4000} />
       <Helmet>
         <title>Categories</title>
       </Helmet>
@@ -23,7 +25,7 @@ function DashboardCategory() {
           spacing={3}
         >
           <Grid item xs={12}>
-            <Categories/>
+            <Categories />
           </Grid>
         </Grid>
       </Container>

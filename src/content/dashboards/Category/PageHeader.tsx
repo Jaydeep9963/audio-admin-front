@@ -3,15 +3,17 @@ import { Typography, Button, Grid } from '@mui/material';
 import AddTwoToneIcon from '@mui/icons-material/AddTwoTone';
 import { useState } from 'react';
 import FormDialog from 'src/Dialog/FormDialog';
-import AddCategory from './AddCategory';
+import CategoryForm from './CategoryForm';
 import { Category } from 'src/models/category_type';
 import { useDispatch } from 'react-redux';
 import { postApi } from 'src/helper';
 import { toast, ToastContainer } from 'react-toast';
 import { setCategory } from 'src/store/slices/categorySlice';
+import { useNavigate } from 'react-router';
 
 function PageHeader() {
   const [isDialogOpen,setIsDialogOpen] = useState(false);
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const user = {
     name: 'Catherine Pike',
@@ -27,9 +29,11 @@ function PageHeader() {
 
     const postCategoryHandler = async (body: FormData) => {
       try {
-        // const response = await CategoriesHandler();
-        // const{data} = response;
-        const response: {success: boolean, data: Category} = await postApi('/categories', body);
+        const response: { success: boolean; data: Category } = await postApi(
+          '/categories',
+          body,
+          navigate
+        );
         console.log('🚀 ~ postCategoryHandler ~ response:', response);
         if (response) {
           dispatch(setCategory(response.data));
@@ -45,7 +49,7 @@ function PageHeader() {
 
   return (
     <>
-      <ToastContainer position="top-center" delay={4000} />
+      <ToastContainer position="bottom-right" delay={4000} />
       <Grid container justifyContent="space-between" alignItems="center">
         <Grid item>
           <Typography variant="h3" component="h3" gutterBottom>
@@ -68,7 +72,10 @@ function PageHeader() {
       </Grid>
       {isDialogOpen && (
         <FormDialog open={isDialogOpen} handleClose={handleClose}>
-          <AddCategory addCategory={postCategoryHandler} />
+          <CategoryForm
+            submitCategoryHandler={postCategoryHandler}
+            asUpdate={false}
+          />
         </FormDialog>
       )}
     </>

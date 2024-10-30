@@ -10,7 +10,7 @@ const SubCategory = () => {
   return (
     <>
       <Helmet>
-        <title>Categories</title>
+        <title>SubCategories</title>
       </Helmet>
       <PageTitleWrapper>
         <PageHeader />

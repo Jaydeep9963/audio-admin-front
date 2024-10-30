@@ -15,19 +15,25 @@ import { setupListeners } from '@reduxjs/toolkit/query';
 import adminApi from './services/adminApi';
 import adminReducer from './slices/adminSlice';
 import categoryReducer from './slices/categorySlice';
+import subcategoryReducer from './slices/subCategorySlice';
+import audioReducer from './slices/audioSlice';
+import privacyPolicyReducer from './slices/privacyPolicySlice';
 
 // Create a persist config
 const persistConfig = {
   key: 'root',
-  storage, // Use localStorage as the default storage
-  whitelist: ['admin','category']
+  storage,
+  whitelist: ['admin', 'category', 'subcategory', 'audio', 'privacyPolicy']
 };
 
 // Combine reducers
 const rootReducer = combineReducers({
   [adminApi.reducerPath]: adminApi.reducer,
   category: categoryReducer,
-  admin: adminReducer
+  subcategory: subcategoryReducer,
+  audio: audioReducer,
+  admin: adminReducer,
+  privacyPolicy: privacyPolicyReducer
 });
 
 // Persist the root reducer

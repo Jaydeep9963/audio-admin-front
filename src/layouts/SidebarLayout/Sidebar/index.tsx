@@ -12,7 +12,8 @@ import {
   Button,
   lighten,
   darken,
-  Tooltip
+  Tooltip,
+  Typography
 } from '@mui/material';
 
 import SidebarMenu from './SidebarMenu';
@@ -56,14 +57,17 @@ function Sidebar() {
       >
         <Scrollbar>
           <Box mt={3}>
-            <Box
+            <Typography sx={{color: "white", textAlign: "center"}} variant="h3" component="h3">
+              Happyfy Admin
+            </Typography>
+            {/* <Box
               mx={2}
               sx={{
                 width: 52
               }}
             >
               <Logo />
-            </Box>
+            </Box> */}
           </Box>
           <Divider
             sx={{
@@ -79,7 +83,7 @@ function Sidebar() {
             background: theme.colors.alpha.trueWhite[10]
           }}
         />
-        <Box p={2}>
+        {/* <Box p={2}>
           <Button
             href="https://bloomui.com"
             target="_blank"
@@ -91,7 +95,7 @@ function Sidebar() {
           >
             Upgrade to PRO
           </Button>
-        </Box>
+        </Box> */}
       </SidebarWrapper>
       <Drawer
         sx={{
