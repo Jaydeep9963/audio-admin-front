@@ -3,7 +3,7 @@ import { toast } from 'react-toast';
 import { store } from './store/store';
 import { NavigateFunction } from 'react-router-dom';
 
-export const API_URL = 'http://localhost:3000/v1/admin';
+export const API_URL = process.env.REACT_APP_BACKEND_API_URL;
 
 const handleAxiosError = (error: any, navigate: NavigateFunction) => {
   if (axios.isAxiosError(error)) {
@@ -115,7 +115,7 @@ export const deleteApi = async <T>(
 };
 
 export async function urlToFile(url, filename, mimeType) {
-  const response = await fetch('http://localhost:3000/' + url);
+  const response = await fetch('http://192.168.1.129:3000/' + url);
   const blob = await response.blob();
   const file = new File([blob], filename, { type: mimeType });
   return file;

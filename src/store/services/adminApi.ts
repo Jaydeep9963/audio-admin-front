@@ -3,9 +3,10 @@ import { LoginResponse } from './type';
 import { Category } from 'src/models/category_type';
 import { CategoryState } from '../slices/type';
 import { RootState } from '../store';
+import { API_BASE_URL } from 'src/config';
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: 'http://localhost:3000/v1/admin',
+  baseUrl: API_BASE_URL,
   // prepareHeaders: (headers, { getState }) => {
   //   const token = (getState() as RootState).admin.token;
   //   console.log("🚀 ~ token:", token)
@@ -18,6 +19,8 @@ const baseQuery = fetchBaseQuery({
   //   return headers;
   // }
 });
+
+console.log('API Base URL:', API_BASE_URL);
 
 const baseQueryWithInterceptor = async (
   args: unknown,
