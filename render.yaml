@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: audio-admin-front
+    env: static
+    buildCommand: rm -rf node_modules package-lock.json pnpm-lock.yaml && npm install --legacy-peer-deps && npm run build
+    staticPublishPath: ./build
+    envVars:
+      - key: NODE_VERSION
+        value: "18.17.0"
+      - key: NPM_CONFIG_PACKAGE_MANAGER
+        value: npm
+      - key: CI
+        value: "false"
