@@ -1,26 +1,26 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Button, TextField, Typography, Paper, Container, Input, CircularProgress } from '@mui/material';
+import { Box, Button, TextField, Typography, Container, CircularProgress } from '@mui/material';
 import { urlToFile } from 'src/helper';
 
-type CategoryFormProps = {
-  submitCategoryHandler: (body: FormData) => Promise<void>;
+type ArtistFormProps = {
+  submitArtistHandler: (body: FormData) => Promise<void>;
   asUpdate: boolean;
-  existData?: { categoryName: string; image: any; description: string };
+  existData?: { name: string; bio: string; image: any };
 };
 
-const CategoryForm: React.FC<CategoryFormProps> = ({
-  submitCategoryHandler,
+const ArtistForm: React.FC<ArtistFormProps> = ({
+  submitArtistHandler,
   asUpdate,
   existData
 }) => {
-  const [categoryName, setCategoryName] = useState(
-    asUpdate && existData ? existData.categoryName : ''
+  const [name, setName] = useState(
+    asUpdate && existData ? existData.name : ''
+  );
+  const [bio, setBio] = useState(
+    asUpdate && existData ? existData.bio : ''
   );
   const [image, setImage] = useState<File | null>(
     asUpdate && existData ? existData.image : null
-  );
-  const [description, setDescription] = useState(
-    asUpdate && existData ? existData.description : ''
   );
   
   // Form validation states
@@ -40,86 +40,81 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
     // Validate form
     let isValid = true;
     
-    if (!categoryName.trim()) {
-      setNameError('Category name is required');
+    if (!name.trim()) {
+      setNameError('Artist name is required');
       isValid = false;
     }
     
     if (!image && !asUpdate) {
-      setImageError('Image is required');
+      setImageError('Artist image is required');
       isValid = false;
     }
     
     if (!isValid) {
       return;
     }
-  
+    
     // Set loading state
     setIsSubmitting(true);
-    
-    const newCategory = new FormData();
-  
-    if (asUpdate && existData) {
-      // For updates: Append only if the field has been updated
-      if (categoryName && categoryName !== existData.categoryName) {
-        newCategory.append('categoryName', categoryName);
-      }
-      if (image && image !== existData.image) {
-        newCategory.append('image', image);
-      }
-      if (description && description !== existData.description) {
-        newCategory.append('description', description);
-      }
-    } else {
-      // For new categories: Append all fields that have values
-      if (categoryName) {
-        newCategory.append('categoryName', categoryName);
-      }
-      if (image) {
-        newCategory.append('image', image);
-      }
-      if (description) {
-        newCategory.append('description', description);
-      }
-    }
-  
+
+    const newArtist = new FormData();
+
     try {
+      if (asUpdate && existData) {
+        // For updates: Append only if the field has been updated
+        if (name && name !== existData.name) {
+          newArtist.append('name', name);
+        }
+        if (bio && bio !== existData.bio) {
+          newArtist.append('bio', bio);
+        }
+        if (image && image !== existData.image) {
+          newArtist.append('image', image);
+        }
+      } else {
+        // For new artists: Append all fields that have values
+        newArtist.append('name', name);
+        newArtist.append('image', image);
+        if (bio) {
+          newArtist.append('bio', bio);
+        }
+      }
+
       // Call your handler with the updated FormData
-      await submitCategoryHandler(newCategory);
+      await submitArtistHandler(newArtist);
     } catch (error) {
       console.error('Error submitting form:', error);
     } finally {
       setIsSubmitting(false);
     }
   };
-  
 
   const handleImageUpload = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const file = (e.target as HTMLInputElement).files?.[0];
-    console.log(file);
     if (file) {
       setImage(file);
+      setImageError('');
     }
   };
 
-    const generateImageUrls = async (categoryImage: any) => {
-        if (categoryImage && categoryImage.file) {
-           const imageFile = await urlToFile(
-             categoryImage.file,
-             categoryImage.fileName,
-             categoryImage.fileType
-           );
-          setImage(imageFile);
-        } 
+  const generateImageUrls = async (artistImage: any) => {
+    if (artistImage && artistImage.file) {
+      const imageFile = await urlToFile(
+        artistImage.file,
+        artistImage.fileName,
+        artistImage.fileType
+      );
+      setImage(imageFile);
+    }
   };
 
-      useEffect(() => {
-        if (asUpdate && existData && existData.image) {
-          generateImageUrls(existData.image);
-        }
-      }, [existData]);
+  useEffect(() => {
+    if (asUpdate && existData && existData.image) {
+      generateImageUrls(existData.image);
+    }
+  }, [existData]);
 
   return (
     <Container
@@ -137,16 +132,16 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
         gutterBottom
         align="center"
       >
-        Add New Category
+        {asUpdate ? 'Update Artist' : 'Add New Artist'}
       </Typography>
       <form onSubmit={handleSubmit}>
         <Box display="flex" flexDirection="column" gap={2}>
           <TextField
-            label="Category Name"
+            label="Artist Name"
             variant="outlined"
-            value={categoryName}
+            value={name}
             onChange={(e) => {
-              setCategoryName(e.target.value);
+              setName(e.target.value);
               if (e.target.value.trim()) setNameError('');
             }}
             required
@@ -154,7 +149,16 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
             error={!!nameError}
             helperText={nameError}
           />
-
+          <TextField
+            label="Bio"
+            variant="outlined"
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            multiline
+            rows={4}
+            fullWidth
+            placeholder="Enter artist biography..."
+          />
           <Box display={'flex'} flexDirection="row" gap={3}>
             <Box display={'flex'} flexDirection="column" gap={1}>
               <Typography variant="body1">{image?.name}</Typography>
@@ -162,10 +166,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
               {/* Hidden Input */}
               <input
                 type="file"
-                onChange={(e) => {
-                  handleImageUpload(e);
-                  if (e.target.files?.length) setImageError('');
-                }}
+                onChange={handleImageUpload}
                 accept="image/*"
                 style={{ display: 'none' }}
                 id="file-upload"
@@ -178,7 +179,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
                 </Button>
               </label>
               {imageError && (
-                <Typography color="error" variant="caption">
+                <Typography color="error" variant="caption" display="block">
                   {imageError}
                 </Typography>
               )}
@@ -187,19 +188,10 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
               <img
                 src={URL.createObjectURL(image)}
                 alt="Selected"
-                style={{ width: '80px', height: '80px' }}
+                style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px' }}
               />
             )}
           </Box>
-          <TextField
-            label="Description"
-            variant="outlined"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            multiline
-            rows={4}
-            fullWidth
-          />
           <Button 
             variant="contained" 
             type="submit" 
@@ -212,7 +204,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
                 {asUpdate ? 'Updating...' : 'Saving...'}
               </>
             ) : (
-              asUpdate ? 'Update Category' : 'Add Category'
+              asUpdate ? 'Update Artist' : 'Save Artist'
             )}
           </Button>
         </Box>
@@ -221,4 +213,4 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
   );
 };
 
-export default CategoryForm;
+export default ArtistForm;

@@ -1,21 +1,20 @@
 import { Typography, Button, Grid } from '@mui/material';
-
 import AddTwoToneIcon from '@mui/icons-material/AddTwoTone';
 import FormDialog from 'src/Dialog/FormDialog';
-import SubCategoryForm from './SubCategoryForm';
+import ArtistForm from './ArtistForm';
 import { useState } from 'react';
-import { SubCategory } from 'src/models/subcategory_type';
+import { Artist } from 'src/models/artist_type';
 import { useDispatch } from 'react-redux';
 import { postApi } from 'src/helper';
-import { setSubCategory } from 'src/store/slices/subCategorySlice';
 import { toast } from 'react-toast';
+import { setArtist } from 'src/store/slices/artistSlice';
 import { useNavigate } from 'react-router';
 
 function PageHeader() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const  navigate = useNavigate();
-
+  const navigate = useNavigate();
   const dispatch = useDispatch();
+  
   const user = {
     name: 'Catherine Pike',
     avatar: '/static/images/avatars/1.jpg'
@@ -24,26 +23,27 @@ function PageHeader() {
   const handleOpen = () => {
     setIsDialogOpen(true);
   };
+  
   const handleClose = () => {
     setIsDialogOpen(false);
   };
 
-  const postSubCategoryHandler = async (body: FormData) => {
+  const postArtistHandler = async (body: FormData) => {
     try {
-      const response: { success: boolean; data: SubCategory } = await postApi(
-        '/subcategories',
+      const response: { success: boolean; data: Artist } = await postApi(
+        '/artists',
         body,
         navigate
       );
-      console.log('🚀 ~ postCategoryHandler ~ response:', response);
+      console.log('🚀 ~ postArtistHandler ~ response:', response);
       if (response) {
-        dispatch(setSubCategory(response.data));
-        toast.success('Category add successfully');
+        dispatch(setArtist(response.data));
+        toast.success('Artist added successfully');
         handleClose();
       }
     } catch (error) {
       toast.error(
-        error?.message || 'An error occurred while fetching categories'
+        error?.message || 'An error occurred while fetching artists'
       );
     }
   };
@@ -53,10 +53,10 @@ function PageHeader() {
       <Grid container justifyContent="space-between" alignItems="center">
         <Grid item>
           <Typography variant="h3" component="h3" gutterBottom>
-            SubCategories
+            Artists
           </Typography>
           <Typography variant="subtitle2">
-            {user.name}, these are your all subcategories
+            {user.name}, these are your all artists
           </Typography>
         </Grid>
         <Grid item>
@@ -66,14 +66,14 @@ function PageHeader() {
             variant="contained"
             startIcon={<AddTwoToneIcon fontSize="small" />}
           >
-            Add subcategory
+            Add artist
           </Button>
         </Grid>
       </Grid>
       {isDialogOpen && (
         <FormDialog open={isDialogOpen} handleClose={handleClose}>
-          <SubCategoryForm
-            submitSubCategoryHandler={postSubCategoryHandler}
+          <ArtistForm
+            submitArtistHandler={postArtistHandler}
             asUpdate={false}
           />
         </FormDialog>

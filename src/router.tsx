@@ -29,11 +29,19 @@ const SubCategory = Loader(
 const Audio = Loader(
   lazy(() => import('src/content/dashboards/Audio'))
 );
+const Artists = Loader(
+  lazy(() => import('src/content/dashboards/Artists'))
+);
+const Reviews = Loader(
+  lazy(() => import('src/content/dashboards/Reviews'))
+);
 const AddAudio = Loader(
   lazy(() => import('src/content/dashboards/Audio/MultiAudioForm'))
 );
 const PrivacyPolicy = Loader(lazy(()=> import ('src/content/dashboards/PrivacyPolicy')));
 const TermAndCondition = Loader(lazy(()=> import ('src/content/dashboards/Term&Condition')));
+const AboutUs = Loader(lazy(()=> import ('src/content/dashboards/AboutUs')));
+const SendNotification = Loader(lazy(()=> import ('src/content/dashboards/SendNotification')));
 
 
 // Applications
@@ -122,6 +130,14 @@ const routes: RouteObject[] = [
             element: <Audio />
           },
           {
+            path: 'artists',
+            element: <Artists />
+          },
+          {
+            path: 'reviews',
+            element: <Reviews />
+          },
+          {
             path: 'addAudios',
             element: <AddAudio />
           },
@@ -132,6 +148,14 @@ const routes: RouteObject[] = [
           {
             path: 'term&condition',
             element: <TermAndCondition />
+          },
+          {
+            path: 'about-us',
+            element: <AboutUs />
+          },
+          {
+            path: 'send-notification',
+            element: <SendNotification />
           }
         ]
       },

@@ -1,18 +1,18 @@
 import { FC, ReactNode } from 'react';
-import PropTypes from 'prop-types';
+import PropTypes, { Validator } from 'prop-types';
 import { styled } from '@mui/material/styles';
 import clsx from 'clsx';
 
 interface TextProps {
   className?: string;
   color?:
-    | 'primary'
-    | 'secondary'
-    | 'error'
-    | 'warning'
-    | 'success'
-    | 'info'
-    | 'black';
+  | 'primary'
+  | 'secondary'
+  | 'error'
+  | 'warning'
+  | 'success'
+  | 'info'
+  | 'black';
   flex?: boolean;
   children?: ReactNode;
 }
@@ -77,7 +77,7 @@ const Text: FC<TextProps> = ({
 };
 
 Text.propTypes = {
-  children: PropTypes.node,
+  children: PropTypes.node as Validator<ReactNode>,
   className: PropTypes.string,
   color: PropTypes.oneOf([
     'primary',

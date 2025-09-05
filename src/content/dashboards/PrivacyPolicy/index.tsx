@@ -95,6 +95,9 @@ const PrivacyPolicy: React.FC = () => {
               const data = editor.getData();
               setPolicyText(data);
             }}
+            config={{
+              placeholder: 'Enter privacy policy content...'
+            }}
           />
         </Box>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>

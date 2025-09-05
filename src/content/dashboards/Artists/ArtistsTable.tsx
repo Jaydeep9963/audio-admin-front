@@ -15,6 +15,8 @@ import {
   TablePagination,
   TableRow,
   TableContainer,
+  Select,
+  MenuItem,
   Typography,
   useTheme,
   CardHeader,
@@ -23,21 +25,22 @@ import {
   CircularProgress
 } from '@mui/material';
 
-import { Category, CryptoOrderStatus } from 'src/models/category_type';
+import { Artist } from 'src/models/artist_type';
+import { CryptoOrderStatus } from 'src/models/category_type';
 import EditTwoToneIcon from '@mui/icons-material/EditTwoTone';
 import DeleteTwoToneIcon from '@mui/icons-material/DeleteTwoTone';
 import { deleteApi, putApi, urlToFile } from 'src/helper';
-import { toast, ToastContainer } from 'react-toast';
+import { toast } from 'react-toast';
 import { useDispatch, useSelector } from 'react-redux';
-import { deleteCategory, updateCategory } from 'src/store/slices/categorySlice';
+import { deleteArtist, updateArtist } from 'src/store/slices/artistSlice';
 import FormDialog from 'src/Dialog/FormDialog';
-import CategoryForm from './CategoryForm';
+import ArtistForm from './ArtistForm';
 import DeleteDialog from 'src/Dialog/DeleteDialog';
 import { RootState } from 'src/store/store';
 import { useNavigate } from 'react-router';
 
-interface CategoriesTableProps {
-  categoriesData: Category[];
+interface ArtistsTableProps {
+  artistsData: Artist[];
   pageChangeHandler: React.Dispatch<React.SetStateAction<number>>;
   limitChangeHandler: React.Dispatch<React.SetStateAction<number>>;
   page: number;
@@ -50,8 +53,8 @@ interface Filters {
   status?: CryptoOrderStatus;
 }
 
-const CategoriesTable: FC<CategoriesTableProps> = ({
-  categoriesData,
+const ArtistsTable: FC<ArtistsTableProps> = ({
+  artistsData,
   pageChangeHandler,
   limitChangeHandler,
   page,
@@ -59,29 +62,25 @@ const CategoriesTable: FC<CategoriesTableProps> = ({
   searchQueryHandler,
   searchQuery
 }) => {
-  const [selectedCryptoOrders, setSelectedCryptoOrders] = useState<string[]>(
-    []
-  );
+  const [selectedCryptoOrders, setSelectedCryptoOrders] = useState<string[]>([]);
   const selectedBulkActions = selectedCryptoOrders.length > 0;
-  // const [page, setPage] = useState<number>(0);
-  // const [limit, setLimit] = useState<number>(5);
   const [filters, setFilters] = useState<Filters>({
     status: null
   });
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<{
+  const [selectedArtist, setSelectedArtist] = useState<{
     id: string;
-    category_name: string;
+    name: string;
+    bio: string;
     image: File | null;
-    description: string;
   }>();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [deleteCatId, setDeleteCatId] = useState('');
+  const [deleteArtistId, setDeleteArtistId] = useState('');
   const [loading, setLoading] = useState(false);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const navigate = useNavigate();
 
-  const { totalCategories } = useSelector((state: RootState) => state.category);
+  const { totalArtists } = useSelector((state: RootState) => state.artist);
   const dispatch = useDispatch();
 
   const statusOptions = [
@@ -103,38 +102,38 @@ const CategoriesTable: FC<CategoriesTableProps> = ({
     }
   ];
 
-  const onDeleteDialogOpen = (categoryID: string) => {
+  const onDeleteDialogOpen = (artistID: string) => {
     setIsDeleteDialogOpen(true);
-    setDeleteCatId(categoryID);
+    setDeleteArtistId(artistID);
   };
 
-  const deleteHandler = async (categoryId: string) => {
+  const deleteHandler = async (artistId: string) => {
     try {
-      const deletedCat = await deleteApi(`/categories/${categoryId}`, navigate);
-      if (deletedCat) {
-        dispatch(deleteCategory(categoryId));
-        toast.success('Category deleted successfully');
+      const deletedArtist = await deleteApi(`/artists/${artistId}`, navigate);
+      if (deletedArtist) {
+        dispatch(deleteArtist(artistId));
+        toast.success('Artist deleted successfully');
       }
     } catch (error) {
-      toast.error(error?.message || 'An error occurred while delete category');
+      toast.error(error?.message || 'An error occurred while delete artist');
     }
   };
 
   const onDeleteHandler = async () => {
-    await deleteHandler(deleteCatId);
+    await deleteHandler(deleteArtistId);
     setIsDeleteDialogOpen(false);
   };
 
-  const handleOpen = async (category: Category) => {
-    setSelectedCategory({
-      id: category._id,
-      category_name: category.category_name,
-      image: await urlToFile(
-        category.image.file,
-        category.image.fileName,
-        category.image.fileType
-      ),
-      description: category.description
+  const handleOpen = async (artist: Artist) => {
+    setSelectedArtist({
+      id: artist._id,
+      name: artist.name,
+      bio: artist.bio || '',
+      image: artist.image ? await urlToFile(
+        artist.image.file,
+        artist.image.fileName,
+        artist.image.fileType
+      ) : null
     });
     setIsDialogOpen(true);
   };
@@ -151,36 +150,35 @@ const CategoriesTable: FC<CategoriesTableProps> = ({
     limitChangeHandler(parseInt(event.target.value));
   };
 
-  const updateCategoryHandler = async (body: FormData) => {
+  const updateArtistHandler = async (body: FormData) => {
     try {
-      const response: { success: boolean; data: Category } = await putApi(
-        `/categories/${selectedCategory.id}`,
+      const response: { success: boolean; data: Artist } = await putApi(
+        `/artists/${selectedArtist.id}`,
         body,
         navigate
       );
       if (response) {
-        dispatch(updateCategory(response.data));
-        toast.success('Category add successfully');
+        dispatch(updateArtist(response.data));
+        toast.success('Artist updated successfully');
         handleClose();
       }
     } catch (error) {
-      console.log('🚀 ~ updateCategoryHandler ~ error:', error);
+      console.log('🚀 ~ updateArtistHandler ~ error:', error);
     }
   };
 
-  const generateImageUrls = async (categories) => {
+  const generateImageUrls = async (artists) => {
     const urls = await Promise.all(
-      categories.map(async (category) => {
-       
-        if (category.image && category.image.file) {
-           const file = await urlToFile(
-             category.image.file,
-             category.image.fileName,
-             category.image.fileType
-           );
-          console.log('🚀 ~ categories.map ~ file:', file);
+      artists.map(async (artist) => {
+        if (artist.image && artist.image.file) {
+          const file = await urlToFile(
+            artist.image.file,
+            artist.image.fileName,
+            artist.image.fileType
+          );
+          console.log('🚀 ~ artists.map ~ file:', file);
           const url = URL.createObjectURL(file);
-          console.log("🚀 ~ categories.map ~ url:", url)
+          console.log("🚀 ~ artists.map ~ url:", url);
           return url;
         } else {
           return null;
@@ -190,18 +188,16 @@ const CategoriesTable: FC<CategoriesTableProps> = ({
     setImageUrls(urls);
   };
 
-      useEffect(() => {
-        if (categoriesData) {
-          generateImageUrls(categoriesData);
-        }
-      }, [categoriesData]);
+  useEffect(() => {
+    if (artistsData) {
+      generateImageUrls(artistsData);
+    }
+  }, [artistsData]);
 
   const theme = useTheme();
 
-
   return (
     <>
-      <ToastContainer position="bottom-right" delay={4000} />
       <Card>
         {selectedBulkActions && (
           <Box flex={1} p={2}>
@@ -213,25 +209,22 @@ const CategoriesTable: FC<CategoriesTableProps> = ({
             <Box width={300}>
               <FormControl fullWidth variant="outlined">
                 <Autocomplete
-                  value={null} // No default value initially
-                  inputValue={searchQuery} // The current search query
+                  value={null}
+                  inputValue={searchQuery}
                   onInputChange={(event, newInputValue) => {
-                    console.log("🚀 ~ newInputValue:", newInputValue)
-                    return (searchQueryHandler(newInputValue));
-                  }
-                    
-                  
-                  } // Update input value as user types
-                  options={[]} // Dynamic category options
-                  loading={loading} // Display a loading indicator
-                  getOptionLabel={(option) => option.name || ''} // Display category name in the list
+                    console.log("🚀 ~ newInputValue:", newInputValue);
+                    return searchQueryHandler(newInputValue);
+                  }}
+                  options={[]}
+                  loading={loading}
+                  getOptionLabel={(option) => option.name || ''}
                   isOptionEqualToValue={(option, value) =>
                     option.id === value.id
-                  } // Match by id
+                  }
                   renderInput={(params) => (
                     <TextField
                       {...params}
-                      label="Search Categories"
+                      label="Search Artists"
                       variant="outlined"
                       InputProps={{
                         ...params.InputProps,
@@ -250,7 +243,7 @@ const CategoriesTable: FC<CategoriesTableProps> = ({
               </FormControl>
             </Box>
           }
-          title="Search Categories"
+          title="Search Artists"
         />
         <Divider />
         <TableContainer>
@@ -258,23 +251,21 @@ const CategoriesTable: FC<CategoriesTableProps> = ({
             <TableHead>
               <TableRow>
                 <TableCell align="center">No</TableCell>
-                <TableCell align="center">name</TableCell>
+                <TableCell align="center">Name</TableCell>
                 <TableCell align="center">Image</TableCell>
-                <TableCell align="center">Description</TableCell>
+                <TableCell align="center">Bio</TableCell>
                 <TableCell align="center">Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {categoriesData?.map((category, index) => {
-                        console.log("🚀 ~ category:", category)
-
+              {artistsData?.map((artist, index) => {
                 const isCryptoOrderSelected = selectedCryptoOrders.includes(
-                  category._id
+                  artist._id
                 );
                 return (
                   <TableRow
                     hover
-                    key={category._id}
+                    key={artist._id}
                     selected={isCryptoOrderSelected}
                   >
                     <TableCell align="center">{index + 1}</TableCell>
@@ -287,16 +278,19 @@ const CategoriesTable: FC<CategoriesTableProps> = ({
                         gutterBottom
                         noWrap
                       >
-                        {category.category_name}
+                        {artist.name}
                       </Typography>
                     </TableCell>
-
                     <TableCell align="center">
-                      <img
-                        src={`${process.env.REACT_APP_BACKEND_IMAGE_URL}${category.image.file}`}
-                        alt="Selected"
-                        style={{ width: '80px', height: '80px' }}
-                      />
+                      {artist.image ? (
+                        <img
+                          src={`${process.env.REACT_APP_BACKEND_IMAGE_URL}/${artist.image.file}`}
+                          alt="Artist"
+                          style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px' }}
+                        />
+                      ) : (
+                        <Typography>-</Typography>
+                      )}
                     </TableCell>
                     <TableCell align="center">
                       <Typography
@@ -304,14 +298,18 @@ const CategoriesTable: FC<CategoriesTableProps> = ({
                         fontWeight="bold"
                         color="text.primary"
                         gutterBottom
-                        noWrap
+                        style={{
+                          maxWidth: '200px',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}
                       >
-                        {category.description}
+                        {artist.bio || '-'}
                       </Typography>
                     </TableCell>
-
                     <TableCell align="center">
-                      <Tooltip title="Edit Order" arrow>
+                      <Tooltip title="Edit Artist" arrow>
                         <IconButton
                           sx={{
                             '&:hover': {
@@ -321,12 +319,12 @@ const CategoriesTable: FC<CategoriesTableProps> = ({
                           }}
                           color="inherit"
                           size="small"
-                          onClick={() => handleOpen(category)} // Added a handler for opening the dialog
+                          onClick={() => handleOpen(artist)}
                         >
                           <EditTwoToneIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
-                      <Tooltip title="Delete Order" arrow>
+                      <Tooltip title="Delete Artist" arrow>
                         <IconButton
                           sx={{
                             '&:hover': {
@@ -336,7 +334,7 @@ const CategoriesTable: FC<CategoriesTableProps> = ({
                           }}
                           color="inherit"
                           size="small"
-                          onClick={() => onDeleteDialogOpen(category._id)}
+                          onClick={() => onDeleteDialogOpen(artist._id)}
                         >
                           <DeleteTwoToneIcon fontSize="small" />
                         </IconButton>
@@ -349,13 +347,13 @@ const CategoriesTable: FC<CategoriesTableProps> = ({
               {/* Dialog for editing */}
               {isDialogOpen && (
                 <FormDialog open={isDialogOpen} handleClose={handleClose}>
-                  <CategoryForm
-                    submitCategoryHandler={updateCategoryHandler}
+                  <ArtistForm
+                    submitArtistHandler={updateArtistHandler}
                     asUpdate={true}
                     existData={{
-                      categoryName: selectedCategory.category_name,
-                      image: selectedCategory.image,
-                      description: selectedCategory.description
+                      name: selectedArtist.name,
+                      bio: selectedArtist.bio,
+                      image: selectedArtist.image
                     }}
                   />
                 </FormDialog>
@@ -373,7 +371,7 @@ const CategoriesTable: FC<CategoriesTableProps> = ({
         <Box p={2}>
           <TablePagination
             component="div"
-            count={totalCategories}
+            count={totalArtists}
             onPageChange={handlePageChange}
             onRowsPerPageChange={handleLimitChange}
             page={page}
@@ -386,12 +384,12 @@ const CategoriesTable: FC<CategoriesTableProps> = ({
   );
 };
 
-CategoriesTable.propTypes = {
-  categoriesData: PropTypes.array.isRequired
+ArtistsTable.propTypes = {
+  artistsData: PropTypes.array.isRequired
 };
 
-CategoriesTable.defaultProps = {
-  categoriesData: []
+ArtistsTable.defaultProps = {
+  artistsData: []
 };
 
-export default CategoriesTable;
+export default ArtistsTable;

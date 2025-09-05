@@ -114,8 +114,8 @@ export const deleteApi = async <T>(
   }
 };
 
-export async function urlToFile(url, filename, mimeType) {
-  const response = await fetch('http://192.168.1.129:3000/' + url);
+export async function urlToFile(url: string, filename: string, mimeType: string) {
+  const response = await fetch(`${process.env.REACT_APP_BACKEND_IMAGE_URL}/`+ url);
   const blob = await response.blob();
   const file = new File([blob], filename, { type: mimeType });
   return file;

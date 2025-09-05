@@ -13,4 +13,8 @@ export interface Audio {
     _id: string;
     subcategory_name: string;
   };
+  artist?: {
+    _id: string;
+    name: string;
+  };
 }

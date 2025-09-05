@@ -66,7 +66,7 @@ function PageHeader() {
             variant="contained"
             startIcon={<AddTwoToneIcon fontSize="small" />}
           >
-            Create category
+            Add category
           </Button>
         </Grid>
       </Grid>

@@ -16,8 +16,12 @@ import DesignServicesTwoToneIcon from '@mui/icons-material/DesignServicesTwoTone
 import CategoryTwoToneIcon from '@mui/icons-material/CategoryTwoTone';
 import HeadphonesTwoToneIcon from '@mui/icons-material/HeadphonesTwoTone';
 import AutoAwesomeMosaicTwoToneIcon from '@mui/icons-material/AutoAwesomeMosaicTwoTone';
+import PeopleTwoToneIcon from '@mui/icons-material/PeopleTwoTone';
+import RateReviewTwoToneIcon from '@mui/icons-material/RateReviewTwoTone';
 import AccountCircleTwoToneIcon from '@mui/icons-material/AccountCircleTwoTone';
 import DisplaySettingsTwoToneIcon from '@mui/icons-material/DisplaySettingsTwoTone';
+import InfoTwoToneIcon from '@mui/icons-material/InfoTwoTone';
+import NotificationsTwoToneIcon from '@mui/icons-material/NotificationsTwoTone';
 
 const MenuWrapper = styled(Box)(
   ({ theme }) => `
@@ -227,6 +231,28 @@ function SidebarMenu() {
                   Audio
                 </Button>
               </ListItem>
+              <ListItem component="div">
+                <Button
+                  disableRipple
+                  component={RouterLink}
+                  onClick={closeSidebar}
+                  to="/dashboard/artists"
+                  startIcon={<PeopleTwoToneIcon />}
+                >
+                  Artists
+                </Button>
+              </ListItem>
+              <ListItem component="div">
+                <Button
+                  disableRipple
+                  component={RouterLink}
+                  onClick={closeSidebar}
+                  to="/dashboard/reviews"
+                  startIcon={<RateReviewTwoToneIcon />}
+                >
+                  Reviews
+                </Button>
+              </ListItem>
             </List>
           </SubMenuWrapper>
         </List>
@@ -260,6 +286,28 @@ function SidebarMenu() {
                   startIcon={<DisplaySettingsTwoToneIcon />}
                 >
                   Term & condition
+                </Button>
+              </ListItem>
+              <ListItem component="div">
+                <Button
+                  disableRipple
+                  component={RouterLink}
+                  onClick={closeSidebar}
+                  to="/dashboard/about-us"
+                  startIcon={<InfoTwoToneIcon />}
+                >
+                  About Us
+                </Button>
+              </ListItem>
+              <ListItem component="div">
+                <Button
+                  disableRipple
+                  component={RouterLink}
+                  onClick={closeSidebar}
+                  to="/dashboard/send-notification"
+                  startIcon={<NotificationsTwoToneIcon />}
+                >
+                  Send Notification
                 </Button>
               </ListItem>
             </List>

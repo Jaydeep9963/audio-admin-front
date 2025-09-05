@@ -44,7 +44,7 @@ function PageHeader() {
             variant="contained"
             startIcon={<AddTwoToneIcon fontSize="small" />}
           >
-            Create audio
+            Add audio
           </Button>
         </Grid>
       </Grid>

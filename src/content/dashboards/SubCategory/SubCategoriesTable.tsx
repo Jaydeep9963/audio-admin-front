@@ -251,7 +251,7 @@ const SubCategoriesTable: FC<RecentOrdersTableProps> = ({
 
                   <TableCell align="center">
                     <img
-                      src={`${process.env.REACT_APP_BASE_URL}${subcategory.image.file}`}
+                      src={`${process.env.REACT_APP_BACKEND_IMAGE_URL}${subcategory.image.file}`}
                       alt="Selected"
                       style={{ width: '80px', height: '80px' }}
                     />

@@ -17,27 +17,27 @@ import { setPrivacyPolicy } from 'src/store/slices/privacyPolicySlice';
 import { PrivacyPolicyState } from 'src/store/slices/type';
 import { RootState } from 'src/store/store';
 
-const TermAndCondition: React.FC = () => {
-  const [tacText, setTacText] = useState<string>();
+const AboutUs: React.FC = () => {
+  const [aboutText, setAboutText] = useState<string>();
   const { content } = useSelector((state: RootState) => state.privacyPolicy);
   console.log('🚀 ~ content:', content);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const formData = new FormData();
-  formData.append('content', tacText);
-
   const handleSave = async () => {
     try {
-      if (tacText) {
+      if (aboutText) {
+        const formData = new FormData();
+        formData.append('content', aboutText);
+        
         const res: PrivacyPolicyState = await postApi(
-          '/termAndCondition',
+          '/about-us',
           formData,
           navigate
         );
         if (res) {
-          // dispatch(setPrivacyPolicy(res));
-          toast.success('Successfully termAndCondition added');
+          dispatch(setPrivacyPolicy(res));
+          toast.success('Successfully about us added');
         }
       }
     } catch (error) {
@@ -45,57 +45,43 @@ const TermAndCondition: React.FC = () => {
     }
   };
 
-  const getTermAndConditionHandler = async () => {
+  const getAboutUsHandler = async () => {
     try {
-      const privacyPolicyRes: PrivacyPolicyState = await getApi(
-        '/termAndCondition',
+      const aboutUsRes: PrivacyPolicyState = await getApi(
+        '/about-us',
         navigate
       );
-      setTacText(privacyPolicyRes.content);
-      // dispatch(setPrivacyPolicy(privacyPolicyRes));
+      setAboutText(aboutUsRes.content);
+      dispatch(setPrivacyPolicy(aboutUsRes));
     } catch (error) {
-      console.log('🚀 ~ getPrivacyPolicyHandler ~ error:', error);
+      console.log('🚀 ~ getAboutUsHandler ~ error:', error);
     }
   };
 
   const onDelete = () => {
-    setTacText('');
+    setAboutText('');
   };
 
   useEffect(() => {
-    getTermAndConditionHandler();
+    getAboutUsHandler();
   }, []);
 
   return (
     <Container maxWidth="md">
-      {/* <Box
-        component={'div'}
-        dangerouslySetInnerHTML={{ __html: content ?? "" }}
-        sx={{
-          padding: '20px',
-          backgroundColor: '#f9f9f9',
-          borderRadius: '8px',
-          marginBottom: '20px',
-          fontSize: '16px',
-          color: '#333',
-          lineHeight: '1.6'
-        }}
-      /> */}
-
       <Paper elevation={3} sx={{ p: 4, mt: 3 }}>
         <Typography variant="h4" gutterBottom>
-          Terms and Conditions
+          About Us
         </Typography>
         <Box sx={{ mt: 2, mb: 2 }}>
           <CKEditor
             editor={ClassicEditor}
-            data={tacText}
+            data={aboutText}
             onChange={(_, editor) => {
               const data = editor.getData();
-              setTacText(data);
+              setAboutText(data);
             }}
             config={{
-              placeholder: 'Enter terms and conditions content...'
+              placeholder: 'Enter about us content...'
             }}
           />
         </Box>
@@ -112,4 +98,4 @@ const TermAndCondition: React.FC = () => {
   );
 };
 
-export default TermAndCondition;
+export default AboutUs;

@@ -17,13 +17,15 @@ import adminReducer from './slices/adminSlice';
 import categoryReducer from './slices/categorySlice';
 import subcategoryReducer from './slices/subCategorySlice';
 import audioReducer from './slices/audioSlice';
+import artistReducer from './slices/artistSlice';
+import reviewReducer from './slices/reviewSlice';
 import privacyPolicyReducer from './slices/privacyPolicySlice';
 
 // Create a persist config
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['admin', 'category', 'subcategory', 'audio', 'privacyPolicy']
+  whitelist: ['admin', 'category', 'subcategory', 'audio', 'artist', 'review', 'privacyPolicy']
 };
 
 // Combine reducers
@@ -32,6 +34,8 @@ const rootReducer = combineReducers({
   category: categoryReducer,
   subcategory: subcategoryReducer,
   audio: audioReducer,
+  artist: artistReducer,
+  review: reviewReducer,
   admin: adminReducer,
   privacyPolicy: privacyPolicyReducer
 });

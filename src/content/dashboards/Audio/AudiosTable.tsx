@@ -296,7 +296,7 @@ const AudiosTable: FC<AudioTableProps> = ({
 
                     <TableCell align="center">
                       <img
-                        src={`${process.env.REACT_APP_BASE_URL}${audio.image.file}`}
+                        src={`${process.env.REACT_APP_BACKEND_IMAGE_URL}/${audio.image.file}`}
                         alt="Selected"
                         style={{ width: '80px', height: '80px' }}
                       />

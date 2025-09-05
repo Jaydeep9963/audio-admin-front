@@ -9,7 +9,9 @@ import {
   FormControl,
   InputLabel,
   MenuItem,
-  Select
+  Select,
+  CircularProgress,
+  FormHelperText
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { allCat, categories_data, subcategories_data } from 'src/constant';
@@ -54,7 +56,6 @@ const AudioForm: React.FC<AudioFormProps> = ({
     description?: string;
     subcategories?: SubCategory[]}[]>([]);
   const [filterCategory, setFilterCategory] = useState<Category>(null);
-  console.log("🚀 ~ filterCategory:", filterCategory)
 
   const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
   const [filterSubCategories, setFilterSubCategories] = useState<SubCategory[]>(
@@ -65,36 +66,101 @@ const AudioForm: React.FC<AudioFormProps> = ({
     subcategory_name: string;
   }>(asUpdate ? existData.subcategory : null);
   const navigate = useNavigate();
+  
+  // Form validation states
+  const [audioNameError, setAudioNameError] = useState<string>('');
+  const [imageError, setImageError] = useState<string>('');
+  const [audioError, setAudioError] = useState<string>('');
+  const [categoryError, setCategoryError] = useState<string>('');
+  
+  // Loading state
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    
+    // Reset errors
+    setAudioNameError('');
+    setImageError('');
+    setAudioError('');
+    setCategoryError('');
+    
+    // Validate form
+    let isValid = true;
+    
+    if (!audioName.trim()) {
+      setAudioNameError('Audio title is required');
+      isValid = false;
+    }
+    
+    if (!image && !asUpdate) {
+      setImageError('Image is required');
+      isValid = false;
+    }
+    
+    if (!audio && !asUpdate) {
+      setAudioError('Audio file is required');
+      isValid = false;
+    }
+    
+    if (!filterCategory) {
+      setCategoryError('Category is required');
+      isValid = false;
+    }
+    
+    if (!isValid) {
+      return;
+    }
+    
+    // Set loading state
+    setIsSubmitting(true);
   
     const newAudio = new FormData();
   
-    // Only append the field if it has been updated
-    if (audioName && audioName !== existData.title) {
-      newAudio.append('title', audioName);
-    }
-    if (image && image !== existData.image) {
-      newAudio.append('image', image);
-    }
-    if (audio && audio !== existData.audio) {
-      newAudio.append('audio', audio);
-    }
-    if (lyrics && lyrics !== existData.lyrics) {
-      newAudio.append('lyrics', lyrics);
-    }
-
-      newAudio.append('categoryId', filterCategory._id);
+    try {
+      // Only append the field if it has been updated
+      if (asUpdate) {
+        if (audioName && audioName !== existData.title) {
+          newAudio.append('title', audioName);
+        }
+        if (image && image !== existData.image) {
+          newAudio.append('image', image);
+        }
+        if (audio && audio !== existData.audio) {
+          newAudio.append('audio', audio);
+        }
+        if (lyrics && lyrics !== existData.lyrics) {
+          newAudio.append('lyrics', lyrics);
+        }
+        
+        newAudio.append('categoryId', filterCategory._id);
+        
+        if (filterSubCategory && filterSubCategory._id !== existData.subcategory._id) {
+          newAudio.append('subCategoryId', filterSubCategory._id);
+        }
+      } else {
+        // For new audio
+        newAudio.append('title', audioName);
+        newAudio.append('image', image);
+        newAudio.append('audio', audio);
+        if (lyrics) {
+          newAudio.append('lyrics', lyrics);
+        }
+        newAudio.append('categoryId', filterCategory._id);
+        if (filterSubCategory) {
+          newAudio.append('subCategoryId', filterSubCategory._id);
+        }
+      }
     
-    if (filterSubCategory && filterSubCategory._id !== existData.subcategory._id) {
-      newAudio.append('subCategoryId', filterSubCategory._id);
+      // Call your handler with the updated FormData
+      await submitAudioHandler(newAudio);
+    } catch (error) {
+      console.error('Error submitting form:', error);
+    } finally {
+      setIsSubmitting(false);
     }
-  
-    // Call your handler with the updated FormData
-    submitAudioHandler(newAudio);
   };
-  
+
 
   const isSubmitButtonVisible = ()=> {
     if(audioName && image && audio){
@@ -136,12 +202,19 @@ const AudioForm: React.FC<AudioFormProps> = ({
   };
 
   const filterSubCategoriesHandler = () => {
-    const filterSubCategories =
-      subCategories &&
-      subCategories.filter(
+    if (filterCategory && subCategories) {
+      const filteredSubCategories = subCategories.filter(
         (subCat) => subCat.category?._id === filterCategory?._id
       );
-    setFilterSubCategories(filterSubCategories);
+      setFilterSubCategories(filteredSubCategories);
+      
+      // Reset subcategory selection if the current selection doesn't belong to the selected category
+      if (filterSubCategory && !filteredSubCategories.some(subCat => subCat._id === filterSubCategory._id)) {
+        setFilterSubCategory(null);
+      }
+    } else {
+      setFilterSubCategories([]);
+    }
   };
 
   useEffect(() => {
@@ -153,15 +226,30 @@ const AudioForm: React.FC<AudioFormProps> = ({
   }, []);
 
   useEffect(() => {
-    if (asUpdate && categories.length > 0 && existData) {
+    if (asUpdate && categories.length > 0 && subCategories.length > 0 && existData) {
+      // Find the category that contains the subcategory from existData
       const existCategory = categories.find((cat) =>
         cat.subcategories.some((subcat) => {
-          return subcat.toString()  === existData?.subcategory?._id.toString();
+          return subcat.toString() === existData?.subcategory?._id.toString();
         })
       );
+      
+      // Set the category
       setFilterCategory(existCategory);
+      
+      // Find and set the subcategory directly from subCategories array
+      const existSubCategory = subCategories.find(
+        (subCat) => subCat._id.toString() === existData?.subcategory?._id.toString()
+      );
+      
+      if (existSubCategory) {
+        setFilterSubCategory({
+          _id: existSubCategory._id,
+          subcategory_name: existSubCategory.subcategory_name
+        });
+      }
     }
-  }, [asUpdate, categories, existData ]);
+  }, [asUpdate, categories, subCategories, existData]);
 
   const handleCategoryChange = (e: ChangeEvent<HTMLInputElement>): void => {
     let value = e.target.value;
@@ -236,9 +324,14 @@ const AudioForm: React.FC<AudioFormProps> = ({
             label="Audio Title"
             variant="outlined"
             value={audioName}
-            onChange={(e) => setAudioName(e.target.value)}
+            onChange={(e) => {
+              setAudioName(e.target.value);
+              if (e.target.value.trim()) setAudioNameError('');
+            }}
             required
             fullWidth
+            error={!!audioNameError}
+            helperText={audioNameError}
           />
           <Box display={'flex'} flexDirection="row" gap={3}>
             <Box display={'flex'} flexDirection="column" gap={1}>
@@ -258,6 +351,11 @@ const AudioForm: React.FC<AudioFormProps> = ({
                   Choose Image File
                 </Button>
               </label>
+              {imageError && (
+                <Typography color="error" variant="caption" display="block">
+                  {imageError}
+                </Typography>
+              )}
             </Box>
             {image && (
               <img
@@ -289,6 +387,11 @@ const AudioForm: React.FC<AudioFormProps> = ({
               </Button>
             </label>
             <Typography variant="body1">{truncateUrl(audio?.name)}</Typography>
+            {audioError && (
+              <Typography color="error" variant="caption" display="block">
+                {audioError}
+              </Typography>
+            )}
           </Box>
           <Box
             display={'flex'}
@@ -324,8 +427,8 @@ const AudioForm: React.FC<AudioFormProps> = ({
             <FormControl fullWidth variant="outlined">
               <InputLabel>Categories</InputLabel>
               <Select
-                disabled={!filterCategory || categories.length === 0}
-                value={filterCategory?._id}
+                disabled={categories.length === 0}
+                value={filterCategory?._id || ''}
                 onChange={handleCategoryChange}
                 label="Categories"
                 autoWidth
@@ -340,10 +443,10 @@ const AudioForm: React.FC<AudioFormProps> = ({
             <FormControl fullWidth variant="outlined">
               <InputLabel>Sub Categories</InputLabel>
               <Select
-                value={filterSubCategory?._id}
+                value={filterSubCategory?._id || ''}
                 onChange={handleSubCategoryChange}
-                disabled={!asUpdate && filterSubCategories.length <= 0}
-                label="SubCategories"
+                disabled={filterSubCategories.length <= 0}
+                label="Sub Categories"
                 autoWidth
               >
                 {filterSubCategories?.map((category) => (
@@ -354,8 +457,20 @@ const AudioForm: React.FC<AudioFormProps> = ({
               </Select>
             </FormControl>
           </Box>
-          <Button variant="contained" type="submit" color="primary">
-            Add Audio
+          <Button 
+            variant="contained" 
+            type="submit" 
+            color="primary"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <CircularProgress size={24} color="inherit" sx={{ mr: 1 }} />
+                {asUpdate ? 'Updating...' : 'Saving...'}
+              </>
+            ) : (
+              asUpdate ? 'Update Audio' : 'Add Audio'
+            )}
           </Button>
         </Box>
       </form>

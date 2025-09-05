@@ -18,10 +18,10 @@ function Footer() {
       >
         <Box>
           <Typography variant="subtitle1">
-            &copy; 2022 - Tokyo Free White React Typescript Admin Dashboard
+            &copy; 2025 - Adite Technologies LLP
           </Typography>
         </Box>
-        <Typography
+        {/* <Typography
           sx={{
             pt: { xs: 2, md: 0 }
           }}
@@ -35,7 +35,7 @@ function Footer() {
           >
             BloomUI.com
           </Link>
-        </Typography>
+        </Typography> */}
       </Box>
     </FooterWrapper>
   );

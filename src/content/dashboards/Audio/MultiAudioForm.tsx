@@ -8,7 +8,8 @@ import {
   MenuItem,
   IconButton,
   FormControl,
-  InputLabel
+  InputLabel,
+  CircularProgress
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { toast } from 'react-toast';
@@ -17,9 +18,10 @@ import { setAudio } from 'src/store/slices/audioSlice';
 import { Audio } from 'src/models/audio_type';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { CategoryResponse, SubCategoryResponse } from 'src/type';
+import { CategoryResponse, SubCategoryResponse, ArtistResponse } from 'src/type';
 import { Category } from 'src/models/category_type';
 import { SubCategory } from 'src/models/subcategory_type';
+import { Artist } from 'src/models/artist_type';
 import { Remove } from '@mui/icons-material';
 import { truncateUrl } from 'src/utility';
 
@@ -31,11 +33,13 @@ const MultiAudioForm = () => {
       audio: null,
       lyrics: null,
       filterCategory: '',
-      filterSubCategory: ''
+      filterSubCategory: '',
+      selectedArtist: ''
     }
   ]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
+  const [artists, setArtists] = useState<Artist[]>([]);
   const [filterCategory, setFilterCategory] = useState<string| null>(null);
   const [filterSubCategories, setFilterSubCategories] = useState<SubCategory[]>(
     []
@@ -76,6 +80,22 @@ const MultiAudioForm = () => {
     }
   };
 
+  const getArtists = async () => {
+    try {
+      const response: ArtistResponse = await getApi(
+        `/artists`,
+        navigate
+      );
+      if (response) {
+        setArtists(response.artists);
+      }
+    } catch (error) {
+      toast.error(
+        error?.message || 'An error occurred while fetching artists'
+      );
+    }
+  };
+
   const handleAddAudioForm = () => {
     setAudios([
       ...audios,
@@ -85,7 +105,8 @@ const MultiAudioForm = () => {
         audio: null,
         lyrics: null,
         filterCategory: '',
-        filterSubCategory: ''
+        filterSubCategory: '',
+        selectedArtist: ''
       }
     ]);
   };
@@ -112,33 +133,63 @@ const MultiAudioForm = () => {
         '/audios',
         body, navigate
       );
-      console.log('🚀 ~ postCategoryHandler ~ response:', response);
+      console.log('🚀 ~ postAudioHandler ~ response:', response);
       if (response) {
         dispatch(setAudio(response.data));
-        toast.success('Audio add successfully');
+        // Remove individual success toast - we'll show a combined message
       }
+      return response;
     } catch (error) {
-      toast.error(
-        error?.message || 'An error occurred while fetching audios'
-      );
+      console.error('🚀 ~ postAudioHandler ~ error:', error);
+      // Re-throw the error so Promise.all can catch it
+      throw error;
     }
   };
 
-  const handleSubmit = (e) => {
+  // Add state for tracking submission status
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    audios.forEach((audio)=>{
-      const newAudio = new FormData();
-      newAudio.append('title', audio.audioName);
-      newAudio.append('image', audio.image);
-      newAudio.append('audio', audio.audio);
-      if(audio.lyrics){
-        newAudio.append('lyrics', audio.lyrics);
-      }
-      newAudio.append('categoryId', audio.filterCategory);
-      newAudio.append('subCategoryId', audio.filterSubCategory);
-      postAudioHandler(newAudio);
-    })
-    console.log(audios); // You can handle form submission here
+    
+    // Set submitting state to true to disable the button
+    setIsSubmitting(true);
+    
+    try {
+      // Use Promise.all to wait for all audio submissions to complete
+      const promises = audios.map(async (audio) => {
+        const newAudio = new FormData();
+        newAudio.append('title', audio.audioName);
+        newAudio.append('image', audio.image);
+        newAudio.append('audio', audio.audio);
+        if(audio.lyrics){
+          newAudio.append('lyrics', audio.lyrics);
+        }
+        newAudio.append('categoryId', audio.filterCategory);
+        newAudio.append('subCategoryId', audio.filterSubCategory);
+        if(audio.selectedArtist){
+          newAudio.append('artistId', audio.selectedArtist);
+        }
+        
+        return postAudioHandler(newAudio);
+      });
+      
+      // Wait for all audio submissions to complete
+      await Promise.all(promises);
+      
+      // Show success message and redirect after all audios are submitted
+      toast.success(`${audios.length} audio(s) submitted successfully!`);
+      
+      // Navigate to audio list page
+      navigate('/dashboard/audio');
+      
+    } catch (error) {
+      console.error('Error submitting audios:', error);
+      toast.error('Failed to submit some audios. Please try again.');
+    } finally {
+      // Reset submitting state regardless of success or failure
+      setIsSubmitting(false);
+    }
   };
 
   const filterSubCategoriesHandler = () => {
@@ -157,6 +208,7 @@ const MultiAudioForm = () => {
   useEffect(() => {
     getCategories();
     getSubCategories();
+    getArtists();
   }, []);
 
   const handleRemoveAudioForm = () => {
@@ -259,6 +311,22 @@ const MultiAudioForm = () => {
             </Select>
           </FormControl>
         </Box>
+        <Box display="flex" gap="5px">
+          <FormControl fullWidth variant="outlined">
+            <InputLabel>Artists</InputLabel>
+            <Select
+              value={audio.selectedArtist}
+              onChange={(e) => handleInputChange(index, 'selectedArtist', e.target.value)}
+              label="Artists"
+            >
+              {artists?.map((artist) => (
+                <MenuItem key={artist._id} value={artist._id}>
+                  {truncateUrl(artist.name)}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
       </Box>
     ))}
     <Box display="flex" justifyContent="space-between" my={2}>
@@ -271,8 +339,20 @@ const MultiAudioForm = () => {
         </IconButton>
       )}
     </Box>
-    <Button variant="contained" type="submit" color="primary">
-      Submit All Audios
+    <Button 
+      variant="contained" 
+      type="submit" 
+      color="primary"
+      disabled={isSubmitting}
+    >
+      {isSubmitting ? (
+        <>
+          <CircularProgress size={24} color="inherit" sx={{ mr: 1 }} />
+          Submitting...
+        </>
+      ) : (
+        'Submit All Audios'
+      )}
     </Button>
   </Box>
 </Box>

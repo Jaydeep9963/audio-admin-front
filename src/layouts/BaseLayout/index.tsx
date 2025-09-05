@@ -21,8 +21,4 @@ const BaseLayout: FC<BaseLayoutProps> = ({ children }) => {
   );
 };
 
-BaseLayout.propTypes = {
-  children: PropTypes.node
-};
-
 export default BaseLayout;

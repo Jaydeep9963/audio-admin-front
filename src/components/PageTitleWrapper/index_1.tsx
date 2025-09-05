@@ -1,5 +1,5 @@
 import { FC, ReactNode } from 'react';
-import PropTypes from 'prop-types';
+import PropTypes, { Validator } from 'prop-types';
 import { Box, Container, styled } from '@mui/material';
 
 const PageTitle = styled(Box)(
@@ -21,7 +21,7 @@ const PageTitleWrapper: FC<PageTitleWrapperProps> = ({ children }) => {
 };
 
 PageTitleWrapper.propTypes = {
-  children: PropTypes.node.isRequired
+  children: PropTypes.node as Validator<ReactNode> // ✅ cast fixes TS2322
 };
 
 export default PageTitleWrapper;

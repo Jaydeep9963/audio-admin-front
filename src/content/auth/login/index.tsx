@@ -88,10 +88,7 @@ const LoginPage: React.FC = () => {
           </Typography>
           <Box
             component="form"
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleLogin(e);
-            }}
+            onSubmit={handleLogin}
             sx={{ mt: 1 }}
           >
             <TextField
